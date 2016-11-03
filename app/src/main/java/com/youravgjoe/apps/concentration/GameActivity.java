@@ -66,7 +66,6 @@ public class GameActivity extends AppCompatActivity {
                         if (mMatches.contains(image.getId()) || (mImageOne != null && mImageOne.getId() == image.getId())) {
                             return;
                         }
-
                         if (mImageOne == null) {
                             mImageOne = (ImageView) findViewById(image.getId());
                             mImageOne.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
@@ -100,7 +99,6 @@ public class GameActivity extends AppCompatActivity {
                             mImageOne = null;
                             mImageTwo = null;
                         }
-
                     }
                 });
 
