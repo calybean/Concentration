@@ -1,19 +1,35 @@
 package com.youravgjoe.apps.concentration;
 
+import android.content.DialogInterface;
+import android.os.Handler;
+import android.support.annotation.IntegerRes;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 public class GameActivity extends AppCompatActivity {
 
     LinearLayout mGameLayout;
+    List<Integer> mCardList; // list of image resource ids to each card image
+
+    List<Integer> mMatches = new ArrayList<>();
+
+    ImageView mImageOne;
+    ImageView mImageTwo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,10 +38,19 @@ public class GameActivity extends AppCompatActivity {
 
         mGameLayout = (LinearLayout) findViewById(R.id.game_layout);
 
+        setupGame();
+    }
+
+    private void setupGame() {
+        displayCards();
+        randomizeCards();
+    }
+
+    private void displayCards() {
         // get screen size (minus margins and header)
         DisplayMetrics metrics = this.getResources().getDisplayMetrics();
-        int screenWidth = metrics.widthPixels - convertPixelsToDp(64); // 2 margins
-        int screenHeight = metrics.heightPixels - convertPixelsToDp(56 + 64); // header plus 2 margins
+        int screenWidth = metrics.widthPixels - convertPixelsToDp(80); // 2 8dp margins + 8 8dp margins: 2(8) + 8(8) = 16 + 64 = 80
+        int screenHeight = metrics.heightPixels - convertPixelsToDp(152); // 5dp header plus 2 8dp margins + 8 8dp margins: 1(56) + 2(16) + 8(8) = 56 + 32 + 64 = 152
 
         for (int i = 0; i < 4; i++) {
             LinearLayout row = new LinearLayout(this);
@@ -39,17 +64,118 @@ public class GameActivity extends AppCompatActivity {
                 image.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Toast.makeText(v.getContext(), "Clicked image " + image.getId(), Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(v.getContext(), "Clicked image " + image.getId(), Toast.LENGTH_SHORT).show();
+
+                        // add logic for one card overturned, and two cards overturned
+                        // maybe tint the cards blue if they find a match.
+
+                        // if we've already matched this one, skip it
+                        if (mMatches.contains(image.getId())) {
+                            return;
+                        }
+
+                        if (mImageOne == null) {
+                            mImageOne = (ImageView) findViewById(image.getId());
+                            mImageOne.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
+                        } else if (mImageTwo == null) {
+                            mImageTwo =  (ImageView) findViewById(image.getId());
+                            mImageTwo.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
+
+
+                            if (mImageOne.getDrawable().getConstantState().equals(mImageTwo.getDrawable().getConstantState())) {
+
+                                mImageOne.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+                                mImageTwo.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+                                mMatches.add(mImageOne.getId());
+                                mMatches.add(mImageTwo.getId());
+
+                                mImageOne = null;
+                                mImageTwo = null;
+
+                                if (mMatches.size() == 16) {
+                                    gameWon();
+                                }
+                            } else {
+                                Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    public void run() {
+                                        // Actions to do after 10 seconds
+
+                                        mImageOne.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+                                        mImageTwo.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+
+                                        mImageOne = null;
+                                        mImageTwo = null;
+                                    }
+                                }, 1500);
+                            }
+
+
+
+
+
+                        } else {
+                            // if they click again before the timer runs out, reset the cards immediately.
+                            // this would require me to cancel the timer/handler though.
+//                            mImageOne.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+//                            mImageTwo.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+//
+//                            mImageOne = null;
+//                            mImageTwo = null;
+                        }
+
                     }
                 });
 
                 CardView card = new CardView(this);
+
+                // set card margins
+                int margin = 16;
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                params.setMargins(margin, margin, margin, margin);
+                card.setLayoutParams(params);
+
                 card.addView(image);
 
                 row.addView(card);
             }
             mGameLayout.addView(row);
         }
+    }
+
+    private void gameWon() {
+        new AlertDialog.Builder(this)
+            .setMessage("You won! Congratulations, you're a pro!")
+            .setPositiveButton("Yes, yes I am", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            })
+            .show();
+    }
+
+    private void randomizeCards() {
+        // make list of available image resources
+        // give two ids to each resource (0-15)
+        // edit the onclick listener to query the list for the image to display
+
+        mCardList = new ArrayList<>();
+
+        // add each card twice
+        for (int i = 0; i < 2; i++) {
+            mCardList.add(R.drawable.ic_brightness_5_black_24dp);
+            mCardList.add(R.drawable.ic_insert_emoticon_black_24dp);
+            mCardList.add(R.drawable.ic_local_airport_black_24dp);
+            mCardList.add(R.drawable.ic_local_florist_black_24dp);
+            mCardList.add(R.drawable.ic_local_shipping_black_24dp);
+            mCardList.add(R.drawable.ic_phone_black_24dp);
+            mCardList.add(R.drawable.ic_star_black_24dp);
+            mCardList.add(R.drawable.ic_wifi_black_24dp);
+        }
+
+        // shuffle the cards
+        long seed = System.nanoTime();
+        Collections.shuffle(mCardList, new Random(seed));
     }
 
     private int convertPixelsToDp(int pixels) {
