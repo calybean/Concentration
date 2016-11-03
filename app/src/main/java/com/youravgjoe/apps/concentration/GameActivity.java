@@ -1,20 +1,14 @@
 package com.youravgjoe.apps.concentration;
 
 import android.content.DialogInterface;
-import android.os.Handler;
-import android.support.annotation.IntegerRes;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +24,9 @@ public class GameActivity extends AppCompatActivity {
 
     ImageView mImageOne;
     ImageView mImageTwo;
+
+    boolean mKillRunnable = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +61,9 @@ public class GameActivity extends AppCompatActivity {
                 image.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        Toast.makeText(v.getContext(), "Clicked image " + image.getId(), Toast.LENGTH_SHORT).show();
-
-                        // add logic for one card overturned, and two cards overturned
-                        // maybe tint the cards blue if they find a match.
 
                         // if we've already matched this one, skip it
-                        if (mMatches.contains(image.getId())) {
+                        if (mMatches.contains(image.getId()) || (mImageOne != null && mImageOne.getId() == image.getId())) {
                             return;
                         }
 
@@ -81,7 +74,7 @@ public class GameActivity extends AppCompatActivity {
                             mImageTwo =  (ImageView) findViewById(image.getId());
                             mImageTwo.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
 
-
+                            // we found a match!
                             if (mImageOne.getDrawable().getConstantState().equals(mImageTwo.getDrawable().getConstantState())) {
 
                                 mImageOne.setBackgroundColor(getResources().getColor(R.color.colorAccent));
@@ -96,32 +89,16 @@ public class GameActivity extends AppCompatActivity {
                                     gameWon();
                                 }
                             } else {
-                                Handler handler = new Handler();
-                                handler.postDelayed(new Runnable() {
-                                    public void run() {
-                                        // Actions to do after 10 seconds
-
-                                        mImageOne.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
-                                        mImageTwo.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
-
-                                        mImageOne = null;
-                                        mImageTwo = null;
-                                    }
-                                }, 1500);
+                                // do nothing, just wait for them to click again?
                             }
 
-
-
-
-
                         } else {
-                            // if they click again before the timer runs out, reset the cards immediately.
-                            // this would require me to cancel the timer/handler though.
-//                            mImageOne.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
-//                            mImageTwo.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
-//
-//                            mImageOne = null;
-//                            mImageTwo = null;
+
+                            mImageOne.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+                            mImageTwo.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+
+                            mImageOne = null;
+                            mImageTwo = null;
                         }
 
                     }

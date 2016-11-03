@@ -20,6 +20,8 @@
         android:textColor="@color/white"
         android:background="@color/colorPrimary"
         android:padding="16dp"
-        android:text="@string/prompt_start_game"/>
+        android:text="@string/prompt_start_game"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
