@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Concentration</string>
+    <string name="action_settings">Settings</string>
+    <string name="prompt_start_game">Start Game!</string>
+</resources>
