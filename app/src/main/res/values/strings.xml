@@ -4,4 +4,6 @@
     <string name="prompt_start_game">Start Game!</string>
     <string name="prompt_add_photos">Add Photos</string>
     <string name="prompt_import_photo">Import a photo from your device</string>
+    <string name="photo_count">Photos imported: %1$d</string>
+    <string name="prompt_photo_count">(you need 8)</string>
 </resources>

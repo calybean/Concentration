@@ -44,6 +44,7 @@
     </LinearLayout>
 
     <HorizontalScrollView
+        android:id="@+id/horizontal_scroll_view"
         android:layout_margin="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -52,11 +53,37 @@
         <LinearLayout
             android:id="@+id/image_container"
             android:layout_width="wrap_content"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
         </LinearLayout>
 
     </HorizontalScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/horizontal_scroll_view">
+
+        <TextView
+            android:id="@+id/photo_count_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimaryDark"
+            android:gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/photo_prompt_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorPrimaryDark"
+            android:gravity="center_horizontal"
+            android:text="@string/prompt_photo_count"
+            android:visibility="gone"/>
+
+    </LinearLayout>
 
 
 </RelativeLayout>
