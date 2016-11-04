@@ -25,9 +25,6 @@ public class GameActivity extends AppCompatActivity {
     ImageView mImageOne;
     ImageView mImageTwo;
 
-    boolean mKillRunnable = false;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

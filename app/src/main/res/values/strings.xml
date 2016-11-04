@@ -2,4 +2,6 @@
     <string name="app_name">Concentration</string>
     <string name="action_settings">Settings</string>
     <string name="prompt_start_game">Start Game!</string>
+    <string name="prompt_add_photos">Add Photos</string>
+    <string name="prompt_import_photo">Import a photo from your device</string>
 </resources>
