@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import static android.content.Intent.EXTRA_ALLOW_MULTIPLE;
 import static android.view.View.GONE;
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mPhotoPromptTextView;
     private int mPhotoCount;
     private Button mAddPhotosButton;
+    private int mBitmapId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,8 +122,6 @@ public class MainActivity extends AppCompatActivity {
                     options.inJustDecodeBounds = true;
                     BitmapFactory.decodeStream(bufferedInputStream, null, options);
 
-                    Log.d(TAG, "options: " + options.toString());
-
                     final double heightWidthRatio = (double)options.outHeight / (double)options.outWidth;
                     Log.d(TAG, "heightWidthRatio: " + heightWidthRatio);
 
@@ -148,11 +146,14 @@ public class MainActivity extends AppCompatActivity {
                     options.inJustDecodeBounds = false;
                     Bitmap bitmap = BitmapFactory.decodeStream(newBufferedInputStream, null, options);
 
+                    // set a new bitmap id every time we get a new bitmap
+                    mBitmapId = bitmap.getGenerationId();
+
                     // add photo to a card, and then to the horizontal scroll view
                     addPhotoToContainer(bitmap);
 
                     // CALL THIS METHOD TO GET THE URI FROM THE BITMAP
-                    Uri tempUri = getImageUri(getApplicationContext(), bitmap);
+                    Uri tempUri = getImageUri(bitmap);
 
                     // CALL THIS METHOD TO GET THE ACTUAL PATH
                     File finalFile = new File(getRealPathFromURI(tempUri));
@@ -184,10 +185,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public Uri getImageUri(Context inContext, Bitmap bitmap) {
+    public Uri getImageUri(Bitmap bitmap) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), bitmap, "Title", null);
+        mBitmapId = bitmap.getGenerationId();
+
+        // todo: make this line not create copies of the images we're "importing"
+        String path = MediaStore.Images.Media.insertImage(this.getContentResolver(), bitmap, "Title", null);
+
         return Uri.parse(path);
     }
 
@@ -285,24 +290,4 @@ public class MainActivity extends AppCompatActivity {
                 .create()
                 .show();
     }
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
 }

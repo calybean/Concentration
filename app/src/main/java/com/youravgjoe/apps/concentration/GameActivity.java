@@ -139,8 +139,6 @@ public class GameActivity extends AppCompatActivity {
 
                 CardView card = new CardView(this);
 
-                // todo: set card dimens as fixed, so they don't resize. Don't make them wrap_content, make them accurate dimens using screenWidth and screenHeight
-
                 // set card margins
                 int margin = 16;
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(screenWidth / 4, screenHeight / 4);
