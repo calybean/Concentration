@@ -1,5 +1,6 @@
 package com.youravgjoe.apps.concentration;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
@@ -7,26 +8,28 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -34,12 +37,15 @@ public class GameActivity extends AppCompatActivity {
 
     private static final String PHOTO_LIST = "PHOTO_LIST";
 
+    private static final String BASE_URL = "https://unsplash.it/800/?random";
+
     private boolean usePhotos = false;
 
     List<String> mFilePathList;
 
     LinearLayout mGameLayout;
-    List<Integer> mCardList; // list of image resource ids to each card image
+//    List<Integer> mCardList; // list of image resource ids to each card image
+    List<Bitmap> mBitmapList; // list of bitmaps from downloaded stock images
     List<Drawable> mDrawableList; // list of drawables if they've imported photos
 
     List<Integer> mMatches = new ArrayList<>();
@@ -80,7 +86,6 @@ public class GameActivity extends AppCompatActivity {
                 final ImageView image = new ImageView(this);
                 image.setMinimumWidth(screenWidth / 4);
                 image.setMinimumHeight(screenHeight / 4);
-                image.setImageResource(R.drawable.ic_android_black_24dp);
                 image.setId((i * 4) + j); // this will number the cards from 0-15.
 
                 image.setOnClickListener(new View.OnClickListener() {
@@ -97,7 +102,8 @@ public class GameActivity extends AppCompatActivity {
                             if (usePhotos) {
                                 mImageOne.setImageDrawable(mDrawableList.get(image.getId()));
                             } else {
-                                mImageOne.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
+//                                mImageOne.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
+                                mImageOne.setImageBitmap(mBitmapList.get(image.getId()));
                             }
                         } else if (mImageTwo == null) {
                             mImageTwo =  (ImageView) findViewById(image.getId());
@@ -105,11 +111,16 @@ public class GameActivity extends AppCompatActivity {
                             if (usePhotos) {
                                 mImageTwo.setImageDrawable(mDrawableList.get(image.getId()));
                             } else {
-                                mImageTwo.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
+//                                mImageTwo.setImageDrawable(getResources().getDrawable(mCardList.get(image.getId())));
+                                mImageTwo.setImageBitmap(mBitmapList.get(image.getId()));
                             }
 
+                            // grab the two bitmaps so we can compare them
+                            Bitmap bitmapOne = ((BitmapDrawable)mImageOne.getDrawable()).getBitmap();
+                            Bitmap bitmapTwo = ((BitmapDrawable)mImageTwo.getDrawable()).getBitmap();
+
                             // we found a match!
-                            if (mImageOne.getDrawable().getConstantState().equals(mImageTwo.getDrawable().getConstantState())) {
+                            if (bitmapOne.sameAs(bitmapTwo)) {
 
                                 mImageOne.setBackgroundColor(getResources().getColor(R.color.colorAccent));
                                 mImageTwo.setBackgroundColor(getResources().getColor(R.color.colorAccent));
@@ -126,10 +137,8 @@ public class GameActivity extends AppCompatActivity {
                                 // do nothing, just wait for them to click again?
                             }
                         } else {
-                            mImageOne.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                            mImageTwo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                            mImageOne.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
-                            mImageTwo.setImageDrawable(getResources().getDrawable(R.drawable.ic_android_black_24dp));
+                            mImageOne.setImageDrawable(null);
+                            mImageTwo.setImageDrawable(null);
 
                             mImageOne = null;
                             mImageTwo = null;
@@ -144,6 +153,7 @@ public class GameActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(screenWidth / 4, screenHeight / 4);
                 params.setMargins(margin, margin, margin, margin);
                 card.setLayoutParams(params);
+                card.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
 
                 card.addView(image);
 
@@ -168,23 +178,97 @@ public class GameActivity extends AppCompatActivity {
         // make list of available image resources
         // give two ids to each resource (0-15)
 
-        mCardList = new ArrayList<>();
+//        mCardList = new ArrayList<>();
 
-        if (mFilePathList.isEmpty()) {
-            // add each drawable id twice
-            for (int i = 0; i < 2; i++) {
-                mCardList.add(R.drawable.ic_brightness_5_black_24dp);
-                mCardList.add(R.drawable.ic_insert_emoticon_black_24dp);
-                mCardList.add(R.drawable.ic_local_airport_black_24dp);
-                mCardList.add(R.drawable.ic_local_florist_black_24dp);
-                mCardList.add(R.drawable.ic_local_shipping_black_24dp);
-                mCardList.add(R.drawable.ic_phone_black_24dp);
-                mCardList.add(R.drawable.ic_star_black_24dp);
-                mCardList.add(R.drawable.ic_wifi_black_24dp);
-            }
-            // shuffle the cards
-            long seed = System.nanoTime();
-            Collections.shuffle(mCardList, new Random(seed));
+        mBitmapList = new ArrayList<>();
+
+        if (mFilePathList == null || mFilePathList.isEmpty()) {
+
+            // todo: maybe find a better api? like pixaby or pexels. One that you can specify what kind of photos you want, or something.
+
+            final ProgressDialog dialog = new ProgressDialog(this);
+
+
+
+            AsyncTask<Integer, Void, List<Bitmap>> getPhotosTask = new AsyncTask<Integer, Void, List<Bitmap>>() {
+                @Override
+                protected void onPreExecute() {
+                    dialog.setMessage("Getting images...");
+                    dialog.show();
+                }
+
+                @Override
+                protected List<Bitmap> doInBackground(Integer... params) {
+                    int numOfImages = params[0];
+
+                    OkHttpClient client = new OkHttpClient();
+
+                    Request request = new Request.Builder()
+                            .url(BASE_URL)
+                            .build();
+
+                    Response response;
+
+                    List<Bitmap> bmpList = new ArrayList<>();
+
+                    for (int i = 0; i < numOfImages; i++) {
+                        try {
+                            response = client.newCall(request).execute();
+
+                            bmpList.add(BitmapFactory.decodeStream(response.body().byteStream()));
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return bmpList;
+                }
+
+                @Override
+                protected void onPostExecute(List<Bitmap> bmpList) {
+                    super.onPostExecute(bmpList);
+
+                    if (dialog.isShowing()) {
+                        dialog.dismiss();
+                    }
+
+                    Toast.makeText(getApplicationContext(), "Images Downloaded", Toast.LENGTH_LONG).show();
+                    // add each photo twice
+                    for (int i = 0; i < 2; i++) {
+                        for (Bitmap bmp : bmpList) {
+                            mBitmapList.add(bmp);
+                        }
+                    }
+                    long seed = System.nanoTime();
+                    Collections.shuffle(mBitmapList, new Random(seed));
+                }
+            };
+            // pass the number of photos you'll need (num of cards / 2)
+            getPhotosTask.execute(8);
+
+
+
+//            if (mBitmapList.isEmpty()) { // code for android icons
+//                // add each drawable id twice
+//                for (int i = 0; i < 2; i++) {
+//                    mCardList.add(R.drawable.ic_brightness_5_black_24dp);
+//                    mCardList.add(R.drawable.ic_insert_emoticon_black_24dp);
+//                    mCardList.add(R.drawable.ic_local_airport_black_24dp);
+//                    mCardList.add(R.drawable.ic_local_florist_black_24dp);
+//                    mCardList.add(R.drawable.ic_local_shipping_black_24dp);
+//                    mCardList.add(R.drawable.ic_phone_black_24dp);
+//                    mCardList.add(R.drawable.ic_star_black_24dp);
+//                    mCardList.add(R.drawable.ic_wifi_black_24dp);
+//                }
+//                // shuffle the cards
+//                long seed = System.nanoTime();
+//                Collections.shuffle(mCardList, new Random(seed));
+//            } else { // code for downloaded photos
+                // shuffle the cards
+//                long seed = System.nanoTime();
+//                Collections.shuffle(mBitmapList, new Random(seed));
+//            }
+
         } else {
             for (String filepath : mFilePathList) {
                 // create a new drawable for each photo, and add each twice

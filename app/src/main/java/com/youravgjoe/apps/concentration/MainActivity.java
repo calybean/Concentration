@@ -60,50 +60,60 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mImageContainer = (LinearLayout) findViewById(R.id.image_container);
-        mPhotoCountTextView = (TextView) findViewById(R.id.photo_count_textview);
-        mPhotoPromptTextView = (TextView) findViewById(R.id.photo_prompt_textview);
-        mAddPhotosButton = (Button) findViewById(R.id.add_photos);
-        mFilePathList = new ArrayList<>();
-
-        Button startGame = (Button) findViewById(R.id.start_game);
+        Button startGame = (Button) findViewById(R.id.start_game_new);
         startGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mPhotoCount == 8) {
-                    Intent newGameIntent = new Intent(MainActivity.this, GameActivity.class);
-                    newGameIntent.putStringArrayListExtra(PHOTO_LIST, mFilePathList);
-                    startActivity(newGameIntent);
-                } else {
-                    startActivity(new Intent(MainActivity.this, GameActivity.class));
-                }
+                startActivity(new Intent(MainActivity.this, GameActivity.class));
             }
         });
 
-        mAddPhotosButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                if (ContextCompat.checkSelfPermission(v.getContext(),
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    // if we don't have the permission yet, get it.
-                    checkPermission();
-                } else {
-                    // if we do, then go get a photo from their files
-                    Intent pickIntent = new Intent();
-                    pickIntent.setType("image/*");
-                    pickIntent.setAction(Intent.ACTION_GET_CONTENT);
-                    String pickTitle = getResources().getString(R.string.prompt_import_photo);
-                    Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
 
-                    // todo: not working:
-                    chooserIntent.putExtra(EXTRA_ALLOW_MULTIPLE, true);
-
-                    startActivityForResult(chooserIntent, SELECT_PICTURE);
-                }
-            }
-        });
+//        mImageContainer = (LinearLayout) findViewById(R.id.image_container);
+//        mPhotoCountTextView = (TextView) findViewById(R.id.photo_count_textview);
+//        mPhotoPromptTextView = (TextView) findViewById(R.id.photo_prompt_textview);
+//        mAddPhotosButton = (Button) findViewById(R.id.add_photos);
+//        mFilePathList = new ArrayList<>();
+//
+//        Button startGame = (Button) findViewById(R.id.start_game);
+//        startGame.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (mPhotoCount == 8) {
+//                    Intent newGameIntent = new Intent(MainActivity.this, GameActivity.class);
+//                    newGameIntent.putStringArrayListExtra(PHOTO_LIST, mFilePathList);
+//                    startActivity(newGameIntent);
+//                } else {
+//                    startActivity(new Intent(MainActivity.this, GameActivity.class));
+//                }
+//            }
+//        });
+//
+//        mAddPhotosButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                if (ContextCompat.checkSelfPermission(v.getContext(),
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                        != PackageManager.PERMISSION_GRANTED) {
+//                    // if we don't have the permission yet, get it.
+//                    checkPermission();
+//                } else {
+//                    // if we do, then go get a photo from their files
+//                    Intent pickIntent = new Intent();
+//                    pickIntent.setType("image/*");
+//                    pickIntent.setAction(Intent.ACTION_GET_CONTENT);
+//                    String pickTitle = getResources().getString(R.string.prompt_import_photo);
+//                    Intent chooserIntent = Intent.createChooser(pickIntent, pickTitle);
+//
+//                    // todo: not working:
+//                    chooserIntent.putExtra(EXTRA_ALLOW_MULTIPLE, true);
+//
+//                    startActivityForResult(chooserIntent, SELECT_PICTURE);
+//                }
+//            }
+//        });
     }
 
 
